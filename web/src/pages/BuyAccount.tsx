@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { AlertCircle, ShoppingCart } from "lucide-react";
+import { AlertCircle, ShoppingCart, LogIn, UserPlus, Shield } from "lucide-react";
 import { AccountDetailsCard } from "../components/AccountDetailsCard";
 
 export const BuyAccount: React.FC = () => {
@@ -75,184 +76,217 @@ export const BuyAccount: React.FC = () => {
         </p>
       </div>
 
-      {error && (
-        <div className="p-4 bg-kawaii-pink/20 border-3 border-kawaii-ink dark:border-white text-neutral-900 dark:text-neutral-100 rounded-3xl shadow-kawaii dark:shadow-kawaii-dark flex items-center gap-3 text-sm font-black">
-          <AlertCircle className="h-5 w-5 shrink-0 text-kawaii-pinkDark stroke-[2.5]" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      {result ? (
-        <div className="space-y-4">
-          <AccountDetailsCard
-            title="Akun VPN Berhasil Dibuat"
-            headerTone="emerald"
-            account={{
-              username: result.username,
-              protocol: result.protocol,
-              expired_at: result.expired_at,
-              credentials: result.credentials,
-              links: result.links
-            }}
-            serverMeta={{
-              domain: currentServerObj?.domain,
-              nama_server: currentServerObj?.nama_server,
-              lokasi: currentServerObj?.lokasi,
-              isp: currentServerObj?.isp
-            }}
-          />
-          <button
-            onClick={() => {
-              setResult(null);
-              setUsername("");
-              setPassword("");
-            }}
-            className="w-full py-3.5 bg-kawaii-peach hover:bg-kawaii-peachDark border-4 border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark rounded-3xl font-black text-sm text-kawaii-ink active:translate-x-0.5 active:translate-y-0.5 transition-all"
-          >
-            Beli Akun Lain
-          </button>
+      {!user ? (
+        /* Guest Login Required Notice Card */
+        <div className="p-6 md:p-8 bg-kawaii-card dark:bg-kawaii-darkCard border-4 border-kawaii-ink dark:border-white rounded-3xl shadow-kawaii-pop dark:shadow-kawaii-dark-pop space-y-5 text-center max-w-2xl mx-auto">
+          <div className="inline-flex p-4 bg-kawaii-yellow text-kawaii-ink rounded-3xl border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm">
+            <Shield className="h-10 w-10 stroke-[2.5]" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-black font-heading text-kawaii-ink dark:text-white">
+              Silakan Masuk Untuk Melakukan Pemesanan
+            </h2>
+            <p className="text-sm font-bold text-neutral-700 dark:text-neutral-300 max-w-md mx-auto">
+              Anda perlu masuk ke akun Anda agar saldo dapat digunakan dan konfigurasi akun VPN tersimpan di daftar akun pribadi Anda.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+            <Link
+              to="/login"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-kawaii-peach hover:bg-kawaii-peachDark font-black text-sm text-kawaii-ink border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              <LogIn className="h-4 w-4 stroke-[2.5]" />
+              <span>Masuk Sekarang</span>
+            </Link>
+            <Link
+              to="/register"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl bg-kawaii-subtle dark:bg-kawaii-darkSubtle hover:bg-white font-black text-sm text-kawaii-ink dark:text-white border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm active:translate-x-0.5 active:translate-y-0.5 transition-all"
+            >
+              <UserPlus className="h-4 w-4 stroke-[2.5]" />
+              <span>Buat Akun Baru</span>
+            </Link>
+          </div>
         </div>
       ) : (
-        <form onSubmit={handleBuy} className="p-6 bg-kawaii-card dark:bg-kawaii-darkCard border-4 border-kawaii-ink dark:border-white rounded-3xl shadow-kawaii dark:shadow-kawaii-dark space-y-6">
-          <div className="space-y-2">
-            <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 tracking-wider">
-              1. Pilih Jenis Protokol
-            </label>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {[
-                { id: "ssh", name: "SSH & OpenVPN", badge: "Direct / WS" },
-                { id: "vmess", name: "VMess", badge: "WS / gRPC" },
-                { id: "vless", name: "VLESS", badge: "WS / TLS" },
-                { id: "trojan", name: "Trojan", badge: "WS / gRPC" },
-                { id: "shadowsocks", name: "Shadowsocks", badge: "AES-128" },
-                { id: "3in1", name: "3IN1 Bundle", badge: "VMess+VLESS+Trojan" }
-              ].map((p) => (
-                <button
-                  type="button"
-                  key={p.id}
-                  onClick={() => setSelectedProtocol(p.id)}
-                  className={`p-3.5 rounded-2xl border-3 text-left transition-all ${
-                    selectedProtocol === p.id
-                      ? "bg-kawaii-peach border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink scale-[1.02]"
-                      : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
-                  }`}
-                >
-                  <div className="font-heading font-black text-sm">{p.name}</div>
-                  <div className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-0.5">{p.badge}</div>
-                </button>
-              ))}
+        <>
+          {error && (
+            <div className="p-4 bg-kawaii-pink/20 border-3 border-kawaii-ink dark:border-white text-neutral-900 dark:text-neutral-100 rounded-3xl shadow-kawaii dark:shadow-kawaii-dark flex items-center gap-3 text-sm font-black">
+              <AlertCircle className="h-5 w-5 shrink-0 text-kawaii-pinkDark stroke-[2.5]" />
+              <span>{error}</span>
             </div>
-          </div>
+          )}
 
-          <div className="space-y-2">
-            <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 tracking-wider">
-              2. Pilih Node Server
-            </label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {servers.map((s) => (
-                <div
-                  key={s.id}
-                  onClick={() => setSelectedServer(s.id)}
-                  className={`p-4 rounded-2xl border-3 cursor-pointer transition-all ${
-                    selectedServer === s.id
-                      ? "bg-kawaii-blue border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink scale-[1.01]"
-                      : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div className="font-heading font-black text-sm">{s.nama_server}</div>
-                    <span className="text-xs font-black px-2 py-0.5 bg-kawaii-green text-kawaii-ink rounded-md border-2 border-kawaii-ink dark:border-white">
-                      Rp {s.harga.toLocaleString("id-ID")}/hr
-                    </span>
-                  </div>
-                  <div className="text-xs font-mono font-black text-neutral-700 dark:text-neutral-300 mt-1">{s.domain}</div>
-                  <div className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-2">
-                    {s.lokasi} • Kuota: {s.total_create_akun}/{s.batas_create_akun || "Unlimited"}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 mb-1">
-                Username VPN
-              </label>
-              <input
-                type="text"
-                required
-                pattern="^[a-zA-Z0-9]+$"
-                minLength={3}
-                maxLength={20}
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full bg-kawaii-card dark:bg-kawaii-darkCard border-3 border-kawaii-ink dark:border-white rounded-2xl p-3 text-sm font-black text-kawaii-ink dark:text-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm focus:outline-none focus:bg-kawaii-yellow/20"
-                placeholder="Hanya huruf & angka (3-20 karakter)"
+          {result ? (
+            <div className="space-y-4">
+              <AccountDetailsCard
+                title="Akun VPN Berhasil Dibuat"
+                headerTone="emerald"
+                account={{
+                  username: result.username,
+                  protocol: result.protocol,
+                  expired_at: result.expired_at,
+                  credentials: result.credentials,
+                  links: result.links
+                }}
+                serverMeta={{
+                  domain: currentServerObj?.domain,
+                  nama_server: currentServerObj?.nama_server,
+                  lokasi: currentServerObj?.lokasi,
+                  isp: currentServerObj?.isp
+                }}
               />
+              <button
+                onClick={() => {
+                  setResult(null);
+                  setUsername("");
+                  setPassword("");
+                }}
+                className="w-full py-3.5 bg-kawaii-peach hover:bg-kawaii-peachDark border-4 border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark rounded-3xl font-black text-sm text-kawaii-ink active:translate-x-0.5 active:translate-y-0.5 transition-all"
+              >
+                Beli Akun Lain
+              </button>
             </div>
-            {selectedProtocol === "ssh" && (
-              <div>
-                <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 mb-1">
-                  Password SSH
+          ) : (
+            <form onSubmit={handleBuy} className="p-6 bg-kawaii-card dark:bg-kawaii-darkCard border-4 border-kawaii-ink dark:border-white rounded-3xl shadow-kawaii dark:shadow-kawaii-dark space-y-6">
+              <div className="space-y-2">
+                <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 tracking-wider">
+                  1. Pilih Jenis Protokol
                 </label>
-                <input
-                  type="password"
-                  required
-                  minLength={4}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-kawaii-card dark:bg-kawaii-darkCard border-3 border-kawaii-ink dark:border-white rounded-2xl p-3 text-sm font-black text-kawaii-ink dark:text-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm focus:outline-none focus:bg-kawaii-yellow/20"
-                  placeholder="Password akun SSH"
-                />
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {[
+                    { id: "ssh", name: "SSH & OpenVPN", badge: "Direct / WS" },
+                    { id: "vmess", name: "VMess", badge: "WS / gRPC" },
+                    { id: "vless", name: "VLESS", badge: "WS / TLS" },
+                    { id: "trojan", name: "Trojan", badge: "WS / gRPC" },
+                    { id: "shadowsocks", name: "Shadowsocks", badge: "AES-128" },
+                    { id: "3in1", name: "3IN1 Bundle", badge: "VMess+VLESS+Trojan" }
+                  ].map((p) => (
+                    <button
+                      type="button"
+                      key={p.id}
+                      onClick={() => setSelectedProtocol(p.id)}
+                      className={`p-3.5 rounded-2xl border-3 text-left transition-all ${
+                        selectedProtocol === p.id
+                          ? "bg-kawaii-peach border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink scale-[1.02]"
+                          : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
+                      }`}
+                    >
+                      <div className="font-heading font-black text-sm">{p.name}</div>
+                      <div className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-0.5">{p.badge}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
-            )}
-          </div>
 
-          <div className="space-y-2">
-            <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 tracking-wider">
-              3. Durasi Masa Aktif
-            </label>
-            <div className="grid grid-cols-4 gap-2.5">
-              {[7, 15, 30, 60].map((d) => (
+              <div className="space-y-2">
+                <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 tracking-wider">
+                  2. Pilih Node Server
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {servers.map((s) => (
+                    <div
+                      key={s.id}
+                      onClick={() => setSelectedServer(s.id)}
+                      className={`p-4 rounded-2xl border-3 cursor-pointer transition-all ${
+                        selectedServer === s.id
+                          ? "bg-kawaii-blue border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink scale-[1.01]"
+                          : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <div className="font-heading font-black text-sm">{s.nama_server}</div>
+                        <span className="text-xs font-black px-2 py-0.5 bg-kawaii-green text-kawaii-ink rounded-md border-2 border-kawaii-ink dark:border-white">
+                          Rp {s.harga.toLocaleString("id-ID")}/hr
+                        </span>
+                      </div>
+                      <div className="text-xs font-mono font-black text-neutral-700 dark:text-neutral-300 mt-1">{s.domain}</div>
+                      <div className="text-xs font-bold text-neutral-600 dark:text-neutral-400 mt-2">
+                        {s.lokasi} • Kuota: {s.total_create_akun}/{s.batas_create_akun || "Unlimited"}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 mb-1">
+                    Username VPN
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    pattern="^[a-zA-Z0-9]+$"
+                    minLength={3}
+                    maxLength={20}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    className="w-full bg-kawaii-card dark:bg-kawaii-darkCard border-3 border-kawaii-ink dark:border-white rounded-2xl p-3 text-sm font-black text-kawaii-ink dark:text-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm focus:outline-none focus:bg-kawaii-yellow/20"
+                    placeholder="Hanya huruf & angka (3-20 karakter)"
+                  />
+                </div>
+                {selectedProtocol === "ssh" && (
+                  <div>
+                    <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 mb-1">
+                      Password SSH
+                    </label>
+                    <input
+                      type="password"
+                      required
+                      minLength={4}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full bg-kawaii-card dark:bg-kawaii-darkCard border-3 border-kawaii-ink dark:border-white rounded-2xl p-3 text-sm font-black text-kawaii-ink dark:text-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm focus:outline-none focus:bg-kawaii-yellow/20"
+                      placeholder="Password akun SSH"
+                    />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-black font-heading uppercase text-neutral-700 dark:text-neutral-300 tracking-wider">
+                  3. Durasi Masa Aktif
+                </label>
+                <div className="grid grid-cols-4 gap-2.5">
+                  {[7, 15, 30, 60].map((d) => (
+                    <button
+                      type="button"
+                      key={d}
+                      onClick={() => setDuration(d)}
+                      className={`py-2.5 rounded-2xl border-3 text-center font-black text-sm transition-all ${
+                        duration === d
+                          ? "bg-kawaii-yellow border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink scale-[1.03]"
+                          : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
+                      }`}
+                    >
+                      {d} Hari
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="p-5 bg-kawaii-subtle dark:bg-kawaii-darkSubtle rounded-3xl border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm space-y-4">
+                <div className="flex justify-between items-center text-sm font-bold">
+                  <span className="text-neutral-700 dark:text-neutral-300">Total Biaya Pembelian:</span>
+                  <span className="text-2xl font-black font-heading text-kawaii-ink dark:text-white">
+                    Rp {estimatedPrice.toLocaleString("id-ID")}
+                  </span>
+                </div>
                 <button
-                  type="button"
-                  key={d}
-                  onClick={() => setDuration(d)}
-                  className={`py-2.5 rounded-2xl border-3 text-center font-black text-sm transition-all ${
-                    duration === d
-                      ? "bg-kawaii-yellow border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink scale-[1.03]"
-                      : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
-                  }`}
+                  type="submit"
+                  disabled={loading || user.saldo < estimatedPrice}
+                  className="w-full py-3.5 bg-kawaii-green hover:bg-kawaii-greenDark disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-500 font-black rounded-2xl text-sm text-kawaii-ink border-3 border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark active:translate-x-0.5 active:translate-y-0.5 transition-all"
                 >
-                  {d} Hari
+                  {loading
+                    ? "Membuat Akun VPN..."
+                    : user.saldo < estimatedPrice
+                      ? "Saldo Anda Tidak Mencukupi (Silakan Top Up)"
+                      : "Konfirmasi & Bayar Sekarang"}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-5 bg-kawaii-subtle dark:bg-kawaii-darkSubtle rounded-3xl border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm space-y-4">
-            <div className="flex justify-between items-center text-sm font-bold">
-              <span className="text-neutral-700 dark:text-neutral-300">Total Biaya Pembelian:</span>
-              <span className="text-2xl font-black font-heading text-kawaii-ink dark:text-white">
-                Rp {estimatedPrice.toLocaleString("id-ID")}
-              </span>
-            </div>
-            <button
-              type="submit"
-              disabled={loading || !user || user.saldo < estimatedPrice}
-              className="w-full py-3.5 bg-kawaii-green hover:bg-kawaii-greenDark disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-500 font-black rounded-2xl text-sm text-kawaii-ink border-3 border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark active:translate-x-0.5 active:translate-y-0.5 transition-all"
-            >
-              {loading
-                ? "Membuat Akun VPN..."
-                : !user
-                  ? "Silakan Login Terlebih Dahulu"
-                  : user.saldo < estimatedPrice
-                    ? "Saldo Anda Tidak Mencukupi (Silakan Top Up)"
-                    : "Konfirmasi & Bayar Sekarang"}
-            </button>
-          </div>
-        </form>
+              </div>
+            </form>
+          )}
+        </>
       )}
     </div>
   );
