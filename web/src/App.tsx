@@ -12,6 +12,7 @@ import { Login } from "./pages/Login";
 import { Register } from "./pages/Register";
 import { AdminServers } from "./pages/admin/Servers";
 import { AdminUsers } from "./pages/admin/Users";
+import { AdminSettings } from "./pages/admin/Settings";
 import { SetupAdmin } from "./pages/SetupAdmin";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode; requireAdmin?: boolean }> = ({
@@ -116,17 +117,27 @@ const AppRoutes: React.FC = () => {
           </ProtectedRoute>
         }
       />
-      <Route
-        path="/admin/users"
-        element={
-          <ProtectedRoute requireAdmin>
-            <Layout>
-              <AdminUsers />
-            </Layout>
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute requireAdmin>
+              <Layout>
+                <AdminUsers />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settings"
+          element={
+            <ProtectedRoute requireAdmin>
+              <Layout>
+                <AdminSettings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };

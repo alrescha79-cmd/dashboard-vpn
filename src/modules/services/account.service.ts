@@ -91,7 +91,12 @@ export async function buyAccount(
         server.id,
         user.id,
         protocolRes.expired_at,
-        JSON.stringify(protocolRes.links || protocolRes.credentials || {})
+        JSON.stringify({
+          ...(protocolRes.links || {}),
+          ...(protocolRes.credentials || {}),
+          password: input.password || protocolRes.credentials?.password,
+          uuid: protocolRes.credentials?.uuid
+        })
       ]
     );
 
@@ -128,6 +133,118 @@ export async function buyAccount(
       expired_at: protocolRes.expired_at,
       credentials: mergedCreds,
       links: mergedLinks
+    }
+  };
+}
+
+export async function renewAccount(
+  userId: number,
+  accountId: string,
+  durationDays: number,
+  protocolRunner = createVPNAccount
+): Promise<{ success: boolean; account?: any; error?: string }> {
+  const db = getDb();
+  const user = db.query("SELECT id, saldo, role, reseller_level FROM users WHERE id = ?").get(userId) as {
+    id: number;
+    saldo: number;
+    role: UserRole;
+    reseller_level: ResellerLevel;
+  } | null;
+  if (!user) return { success: false, error: "User tidak ditemukan" };
+
+  const acc = db.query(`
+    SELECT a.*, s.harga as server_harga, s.domain, s.auth, s.user_ssh, s.port, s.quota, s.iplimit
+    FROM accounts a
+    JOIN servers s ON a.server_id = s.id
+    WHERE a.id = ?
+  `).get(accountId) as any;
+
+  if (!acc) return { success: false, error: "Akun tidak ditemukan" };
+  if (user.role !== "admin" && acc.owner_user_id !== user.id) {
+    return { success: false, error: "Tidak memiliki hak memperpanjang akun ini" };
+  }
+
+  const { totalPrice } = calculatePrice({
+    serverPrice: acc.server_harga,
+    durationDays,
+    role: user.role,
+    resellerLevel: user.reseller_level,
+    protocol: acc.protocol
+  });
+
+  if (user.role !== "admin" && user.saldo < totalPrice) {
+    return { success: false, error: "Saldo tidak mencukupi untuk memperpanjang akun ini" };
+  }
+
+  // Deduct saldo initially
+  if (totalPrice > 0) {
+    db.run("UPDATE users SET saldo = saldo - ? WHERE id = ?", [totalPrice, user.id]);
+  }
+
+  // Calculate new expiry date based on existing or now
+  const baseDate = acc.expired_at && new Date(acc.expired_at) > new Date() ? new Date(acc.expired_at) : new Date();
+  baseDate.setDate(baseDate.getDate() + durationDays);
+  const newExpiredAt = baseDate.toISOString().replace("T", " ").substring(0, 19);
+
+  // Run protocol create/renew on server
+  const parsedConfig = (() => {
+    try {
+      return JSON.parse(acc.config_json || "{}");
+    } catch {
+      return {};
+    }
+  })();
+
+  const protocolRes: ProtocolResult = await protocolRunner(acc.protocol, acc, {
+    username: acc.username,
+    password: parsedConfig.password,
+    durationDays,
+    quotaGb: acc.quota,
+    iplimit: acc.iplimit
+  });
+
+  if (!protocolRes.success) {
+    if (totalPrice > 0) {
+      db.run("UPDATE users SET saldo = saldo + ? WHERE id = ?", [totalPrice, user.id]);
+    }
+    return { success: false, error: protocolRes.error || "Gagal memperpanjang akun di server" };
+  }
+
+  const commission = calculateCommission({
+    serverPrice: acc.server_harga,
+    durationDays,
+    role: user.role
+  });
+
+  db.transaction(() => {
+    db.run(
+      "INSERT INTO invoices (user_id, layanan, akun, hari, harga, komisi) VALUES (?, ?, ?, ?, ?, ?)",
+      [user.id, acc.protocol, acc.username, durationDays, totalPrice, commission]
+    );
+
+    db.run(
+      "UPDATE accounts SET expired_at = ?, status = 'active', expiry_warning_3d_sent = 0, expiry_warning_1d_sent = 0, expired_notified = 0 WHERE id = ?",
+      [newExpiredAt, acc.id]
+    );
+
+    if (commission > 0 && user.role === "reseller") {
+      db.run("UPDATE users SET saldo = saldo + ? WHERE id = ?", [commission, user.id]);
+      db.run("INSERT INTO reseller_sales (reseller_id, buyer_id, akun_type, username, komisi) VALUES (?, ?, ?, ?, ?)", [
+        user.id,
+        user.id,
+        acc.protocol,
+        acc.username,
+        commission
+      ]);
+    }
+  })();
+
+  return {
+    success: true,
+    account: {
+      ...acc,
+      expired_at: newExpiredAt,
+      status: "active"
     }
   };
 }

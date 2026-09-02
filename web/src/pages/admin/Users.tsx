@@ -45,7 +45,7 @@ export const AdminUsers: React.FC = () => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-6 md:space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-kawaii-card dark:bg-kawaii-darkCard p-6 rounded-3xl border-4 border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark">
         <div>
           <h1 className="text-2xl font-black font-heading flex items-center gap-2 text-kawaii-ink dark:text-white">

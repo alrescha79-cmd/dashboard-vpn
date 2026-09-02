@@ -14,14 +14,16 @@ import {
   X,
   UserCheck,
   Sun,
-  Moon
+  Moon,
+  Settings,
+  MoreHorizontal
 } from "lucide-react";
 
 export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const [isDark, setIsDark] = useState(() => {
     return localStorage.getItem("theme") === "dark";
   });
@@ -40,6 +42,12 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     setIsDark((prev) => !prev);
   };
 
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  // Full Navigation List (for desktop sidebar and mobile drawer)
   const navItems = [
     { label: "Dashboard", path: "/", icon: LayoutDashboard },
     { label: "Beli Akun", path: "/buy", icon: ShoppingCart },
@@ -52,47 +60,57 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     ...(user && user.role === "admin"
       ? [
           { label: "Kelola Server", path: "/admin/servers", icon: Server, highlight: "bg-kawaii-pink text-white" },
-          { label: "Kelola Pengguna", path: "/admin/users", icon: UserCheck, highlight: "bg-kawaii-pink text-white" }
+          { label: "Kelola Pengguna", path: "/admin/users", icon: UserCheck, highlight: "bg-kawaii-pink text-white" },
+          { label: "Pengaturan Sistem", path: "/admin/settings", icon: Settings, highlight: "bg-kawaii-green text-kawaii-ink" }
         ]
       : [])
   ];
 
+  // Mobile Bottom Dock: exactly 4 main tabs + 1 center More button
+  const dockLeft = [
+    { label: "Dashboard", path: "/", icon: LayoutDashboard },
+    { label: "Beli Akun", path: "/buy", icon: ShoppingCart }
+  ];
+  const dockRight = [
+    { label: "Akunku", path: "/my-accounts", icon: Shield },
+    { label: "Top Up", path: "/topup", icon: Wallet }
+  ];
+
   return (
-    <div className="flex min-h-screen bg-[#faede2] dark:bg-[#121214] text-kawaii-ink dark:text-neutral-100 flex-col md:flex-row font-sans transition-colors">
-      {/* Mobile Top Header */}
-      <div className="md:hidden flex items-center justify-between p-4 bg-kawaii-card dark:bg-kawaii-darkCard border-b-4 border-kawaii-ink dark:border-white">
-        <div className="flex items-center space-x-2 text-kawaii-ink dark:text-white font-heading font-black text-xl">
-          <span className="inline-flex p-1.5 bg-kawaii-yellow rounded-xl border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm">
+    <div className="flex min-h-screen bg-[#faede2] dark:bg-[#121214] text-kawaii-ink dark:text-neutral-100 flex-col md:flex-row font-sans transition-colors pb-24 md:pb-0">
+      {/* Mobile Top Header (Fixed at top for Title, Theme Switcher & Logout) */}
+      <header className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-kawaii-card dark:bg-kawaii-darkCard border-b-4 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm">
+        <Link to="/" className="flex items-center space-x-2 text-kawaii-ink dark:text-white font-heading font-black text-xl">
+          <span className="inline-flex p-1.5 bg-kawaii-yellow rounded-xl border-2 border-kawaii-ink dark:border-white shadow-kawaii-sm">
             <Shield className="h-5 w-5 text-kawaii-ink" />
           </span>
-          <span>VPN Portal</span>
-        </div>
+          <span>VPN Pop</span>
+        </Link>
         <div className="flex items-center gap-2">
           <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-2xl bg-kawaii-yellow border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm text-kawaii-ink active:translate-x-0.5 active:translate-y-0.5"
+            className="p-2 rounded-2xl bg-kawaii-yellow border-2 border-kawaii-ink dark:border-white shadow-kawaii-sm text-kawaii-ink active:translate-x-0.5 active:translate-y-0.5 transition-all"
             aria-label="Ganti Tema"
           >
-            {isDark ? <Sun className="h-5 w-5 stroke-[2.5]" /> : <Moon className="h-5 w-5 stroke-[2.5]" />}
+            {isDark ? <Sun className="h-4 w-4 stroke-[2.5]" /> : <Moon className="h-4 w-4 stroke-[2.5]" />}
           </button>
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-2 rounded-2xl bg-kawaii-peach border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm text-kawaii-ink active:translate-x-0.5 active:translate-y-0.5"
-            aria-label="Buka Menu Navigasi"
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6 stroke-[2.5]" /> : <Menu className="h-6 w-6 stroke-[2.5]" />}
-          </button>
+          {user && (
+            <button
+              onClick={handleLogout}
+              className="p-2 rounded-2xl bg-kawaii-pink/20 hover:bg-kawaii-pink border-2 border-kawaii-ink dark:border-white shadow-kawaii-sm text-kawaii-ink dark:text-white active:translate-x-0.5 active:translate-y-0.5 transition-all"
+              aria-label="Keluar"
+              title="Keluar"
+            >
+              <LogOut className="h-4 w-4 stroke-[2.5]" />
+            </button>
+          )}
         </div>
-      </div>
+      </header>
 
-      {/* Sidebar Navigation */}
-      <aside
-        className={`${
-          mobileMenuOpen ? "block" : "hidden"
-        } md:flex w-full md:w-64 border-r-4 border-kawaii-ink dark:border-white bg-kawaii-card dark:bg-kawaii-darkCard p-4 flex-col justify-between shrink-0 shadow-kawaii dark:shadow-kawaii-dark md:shadow-none z-20`}
-      >
+      {/* Desktop Sidebar Navigation */}
+      <aside className="hidden md:flex w-64 border-r-4 border-kawaii-ink dark:border-white bg-kawaii-card dark:bg-kawaii-darkCard p-4 flex-col justify-between shrink-0 shadow-none z-20 sticky top-0 h-screen overflow-y-auto">
         <div className="space-y-6">
-          <div className="hidden md:flex items-center justify-between px-2">
+          <div className="flex items-center justify-between px-2">
             <div className="flex items-center space-x-2.5 text-kawaii-ink dark:text-white font-heading font-black text-2xl tracking-tight">
               <span className="inline-flex p-2 bg-kawaii-yellow rounded-2xl border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm">
                 <Shield className="h-6 w-6 text-kawaii-ink" />
@@ -139,7 +157,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
                 <Link
                   key={item.path}
                   to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center space-x-3 px-3.5 py-2.5 rounded-2xl text-sm font-black border-3 transition-all ${
                     isActive
                       ? "bg-kawaii-peach border-kawaii-ink dark:border-white shadow-kawaii dark:shadow-kawaii-dark text-kawaii-ink translate-x-1"
@@ -157,7 +174,6 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </div>
 
         <div className="space-y-3 pt-4 border-t-2 border-kawaii-ink/20 dark:border-white/20">
-          {/* Darkmode Toggle Button */}
           <button
             onClick={toggleDarkMode}
             className="flex w-full items-center justify-center space-x-2 px-3.5 py-2.5 rounded-2xl text-sm font-black bg-kawaii-yellow hover:bg-kawaii-yellowDark text-kawaii-ink border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm active:translate-x-0.5 active:translate-y-0.5 transition-all"
@@ -177,10 +193,7 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
           {user && (
             <button
-              onClick={async () => {
-                await logout();
-                navigate("/login");
-              }}
+              onClick={handleLogout}
               className="flex w-full items-center justify-center space-x-2 px-3.5 py-2.5 rounded-2xl text-sm font-black bg-kawaii-pink/20 hover:bg-kawaii-pink text-kawaii-ink dark:text-white border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm active:translate-x-0.5 active:translate-y-0.5 transition-all"
             >
               <LogOut className="h-4 w-4 stroke-[2.5]" />
@@ -194,6 +207,125 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <main className="flex-1 p-4 md:p-8 overflow-y-auto max-w-7xl mx-auto w-full">
         {children}
       </main>
+
+      {/* Mobile Bottom Dock Navigation Bar */}
+      <div className="md:hidden fixed bottom-3 inset-x-3 z-40 flex justify-center pointer-events-none">
+        <nav className="pointer-events-auto w-full max-w-md bg-kawaii-card/95 dark:bg-kawaii-darkCard/95 backdrop-blur-md border-3 border-kawaii-ink dark:border-white rounded-full px-3 py-2 shadow-kawaii-pop dark:shadow-kawaii-dark-pop flex items-center justify-between">
+          {/* Dock Left 2 items */}
+          {dockLeft.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all ${
+                  isActive
+                    ? "bg-kawaii-peach text-kawaii-ink border-2 border-kawaii-ink dark:border-white shadow-kawaii-sm scale-105"
+                    : "text-neutral-700 dark:text-neutral-300 hover:text-kawaii-ink dark:hover:text-white"
+                }`}
+              >
+                <Icon className="h-5 w-5 stroke-[2.5]" />
+                <span className="text-[10px] font-black mt-0.5 font-heading">{item.label}</span>
+              </Link>
+            );
+          })}
+
+          {/* Center More Item Drawer Trigger */}
+          <button
+            onClick={() => setMobileDrawerOpen(true)}
+            className="flex flex-col items-center justify-center p-2.5 -mt-4 bg-kawaii-yellow text-kawaii-ink border-3 border-kawaii-ink dark:border-white rounded-2xl shadow-kawaii-pop active:translate-y-0.5 transition-all"
+            aria-label="Buka Semua Menu"
+          >
+            <MoreHorizontal className="h-5 w-5 stroke-[3]" />
+            <span className="text-[10px] font-black uppercase font-heading">Menu</span>
+          </button>
+
+          {/* Dock Right 2 items */}
+          {dockRight.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center justify-center p-2 rounded-2xl transition-all ${
+                  isActive
+                    ? "bg-kawaii-peach text-kawaii-ink border-2 border-kawaii-ink dark:border-white shadow-kawaii-sm scale-105"
+                    : "text-neutral-700 dark:text-neutral-300 hover:text-kawaii-ink dark:hover:text-white"
+                }`}
+              >
+                <Icon className="h-5 w-5 stroke-[2.5]" />
+                <span className="text-[10px] font-black mt-0.5 font-heading">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* Mobile Drawer Popup List */}
+      {mobileDrawerOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end justify-center animate-in fade-in"
+          onClick={() => setMobileDrawerOpen(false)}
+        >
+          <div
+            className="w-full max-w-lg bg-kawaii-card dark:bg-kawaii-darkCard border-t-4 border-x-4 border-kawaii-ink dark:border-white rounded-t-3xl p-5 shadow-kawaii-pop dark:shadow-kawaii-dark-pop space-y-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b-2 border-kawaii-ink/20 dark:border-white/20 pb-3">
+              <span className="font-heading font-black text-lg text-kawaii-ink dark:text-white flex items-center gap-2">
+                <Menu className="h-5 w-5 stroke-[2.5]" />
+                <span>Semua Menu & Navigasi</span>
+              </span>
+              <button
+                onClick={() => setMobileDrawerOpen(false)}
+                className="p-1.5 rounded-full bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-2 border-kawaii-ink dark:border-white text-kawaii-ink dark:text-white"
+              >
+                <X className="h-5 w-5 stroke-[2.5]" />
+              </button>
+            </div>
+
+            {/* All Menu Grid */}
+            <div className="grid grid-cols-2 gap-2.5">
+              {navItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileDrawerOpen(false)}
+                    className={`flex items-center gap-2.5 p-3 rounded-2xl text-xs font-black border-2 transition-all ${
+                      isActive
+                        ? "bg-kawaii-peach border-kawaii-ink dark:border-white shadow-kawaii-sm text-kawaii-ink"
+                        : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-kawaii-ink dark:text-white hover:border-kawaii-ink"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 shrink-0 stroke-[2.5]" />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {user && (
+              <div className="pt-2">
+                <button
+                  onClick={async () => {
+                    setMobileDrawerOpen(false);
+                    await handleLogout();
+                  }}
+                  className="w-full py-3 bg-kawaii-pink/20 hover:bg-kawaii-pink rounded-2xl text-xs font-black text-kawaii-ink dark:text-white border-2 border-kawaii-ink dark:border-white shadow-kawaii-sm flex items-center justify-center gap-2"
+                >
+                  <LogOut className="h-4 w-4 stroke-[2.5]" />
+                  <span>Keluar dari Sesi</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

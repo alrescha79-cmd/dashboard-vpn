@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { authPlugin } from "../lib/auth";
-import { buyAccount, createTrialAccount } from "../modules/services/account.service";
+import { buyAccount, createTrialAccount, renewAccount } from "../modules/services/account.service";
 import { getDb } from "../db/database";
 import { deleteVPNAccount } from "../modules/protocols";
 
@@ -53,19 +53,51 @@ export const accountsRoutes = new Elysia({ prefix: "/api/accounts" })
       })
     }
   )
+  .post(
+    "/renew",
+    async ({ user, body, set }) => {
+      if (!user) {
+        set.status = 401;
+        return { error: "Unauthorized" };
+      }
+      const res = await renewAccount(user.id, body.accountId, body.durationDays);
+      if (!res.success) {
+        set.status = 400;
+        return { error: res.error };
+      }
+      return res;
+    },
+    {
+      body: t.Object({
+        accountId: t.String(),
+        durationDays: t.Number({ minimum: 1, maximum: 365 })
+      })
+    }
+  )
   .get("/my", ({ user, set }) => {
     if (!user) {
       set.status = 401;
       return { error: "Unauthorized" };
     }
     const db = getDb();
-    const rows = db.query(`
-      SELECT a.*, s.nama_server, s.domain as server_domain
-      FROM accounts a
-      JOIN servers s ON a.server_id = s.id
-      WHERE a.owner_user_id = ?
-      ORDER BY a.created_at DESC
-    `).all(user.id);
+    const isSpecialAdmin = user.role === "admin";
+    const query = isSpecialAdmin
+      ? `
+        SELECT a.*, s.nama_server, s.domain as server_domain, s.isp, s.lokasi, u.username as owner_username
+        FROM accounts a
+        JOIN servers s ON a.server_id = s.id
+        JOIN users u ON a.owner_user_id = u.id
+        ORDER BY a.created_at DESC
+      `
+      : `
+        SELECT a.*, s.nama_server, s.domain as server_domain, s.isp, s.lokasi, u.username as owner_username
+        FROM accounts a
+        JOIN servers s ON a.server_id = s.id
+        JOIN users u ON a.owner_user_id = u.id
+        WHERE a.owner_user_id = ?
+        ORDER BY a.created_at DESC
+      `;
+    const rows = isSpecialAdmin ? db.query(query).all() : db.query(query).all(user.id);
     return { accounts: rows };
   })
   .delete("/:id", async ({ user, params, set }) => {
