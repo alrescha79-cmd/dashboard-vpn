@@ -55,10 +55,10 @@ export const Trial: React.FC = () => {
           <span className="p-2 bg-kawaii-yellow rounded-2xl border-3 border-kawaii-ink dark:border-white shadow-kawaii-sm dark:shadow-kawaii-dark-sm">
             <Zap className="h-6 w-6 text-kawaii-ink stroke-[2.5]" />
           </span>
-          <span>Uji Coba VPN Gratis (Trial 60 Menit)</span>
+          <span>Generate Akun Trial Gratis</span>
         </h1>
         <p className="text-sm font-bold text-neutral-700 dark:text-neutral-300 mt-1">
-          Dapatkan akses uji coba kecepatan dan stabilitas koneksi tanpa biaya.
+          Coba koneksi server VPN secara gratis dengan masa aktif 1 jam (60 menit).
         </p>
       </div>
 

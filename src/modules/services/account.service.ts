@@ -285,6 +285,10 @@ export async function createTrialAccount(
     return { success: false, error: protocolRes.error || "Gagal membuat akun trial" };
   }
 
+  const expDate = new Date();
+  expDate.setHours(expDate.getHours() + 1);
+  const trialExpiredAt = expDate.toISOString().replace("T", " ").substring(0, 19);
+
   const accountId = `trial-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 
   db.transaction(() => {
@@ -296,8 +300,13 @@ export async function createTrialAccount(
         protocol.toUpperCase(),
         server.id,
         user.id,
-        protocolRes.expired_at,
-        JSON.stringify({ ...(protocolRes.credentials || {}), ...(protocolRes.links || {}) })
+        trialExpiredAt,
+        JSON.stringify({
+          ...(protocolRes.credentials || {}),
+          ...(protocolRes.links || {}),
+          password: effectivePassword,
+          uuid: protocolRes.credentials?.uuid
+        })
       ]
     );
     db.run("UPDATE users SET trial_count_today = trial_count_today + 1, has_trial = 1, last_trial_date = date('now') WHERE id = ?", [user.id]);
@@ -312,8 +321,12 @@ export async function createTrialAccount(
       id: accountId,
       username,
       protocol,
-      expired_at: protocolRes.expired_at,
-      credentials: mergedCreds,
+      expired_at: trialExpiredAt,
+      credentials: {
+        ...mergedCreds,
+        password: effectivePassword,
+        uuid: mergedCreds.uuid
+      },
       links: mergedLinks
     }
   };
