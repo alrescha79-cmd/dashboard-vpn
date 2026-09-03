@@ -51,6 +51,9 @@ export const app = new Elysia()
   });
 
 if (import.meta.main) {
-  app.listen(config.PORT);
-  console.log(`🦊 VPN Web Dashboard active at http://localhost:${config.PORT}`);
+  app.listen({
+    port: config.PORT,
+    hostname: "0.0.0.0"
+  });
+  console.log(`🦊 VPN Web Dashboard active at http://0.0.0.0:${config.PORT}`);
 }

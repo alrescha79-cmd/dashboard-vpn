@@ -74,7 +74,7 @@ services:
     container_name: vpn-dashboard
     restart: always
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3000:3000"
     volumes:
       - ./data:/app/data
     env_file:
@@ -84,6 +84,8 @@ services:
       - PORT=3000
       - DB_PATH=/app/data/vpn.db
 ```
+
+> **Catatan Port**: Mapping `"3000:3000"` memungkinkan akses langsung via browser `http://IP_VPS:3000`. Jika menggunakan Nginx Reverse Proxy di VPS yang sama, Anda juga bisa menggantinya menjadi `"127.0.0.1:3000:3000"`.
 
 ### B. Buat File `.env`
 Buat file `.env`:
@@ -239,8 +241,23 @@ Untuk mencadangkan database:
 cp /opt/vpn-dashboard/data/vpn.db /root/vpn_backup_$(date +%F).db
 ```
 
-### C. Melihat Log Real-time
-```bash
-cd /opt/vpn-dashboard
-docker compose logs -f --tail=100
-```
+### D. Troubleshooting Akses IP:Port
+Jika Anda mencoba mengakses `http://IP_VPS:3000` namun koneksi timeout / tidak dapat terhubung:
+1. **Periksa Port Firewall (UFW / Security Group Provider)**:
+   ```bash
+   sudo ufw allow 3000/tcp
+   sudo ufw allow 80/tcp
+   sudo ufw allow 443/tcp
+   sudo ufw reload
+   ```
+   *Jika VPS menggunakan AWS EC2, Alibaba Cloud, GCP, Oracle Cloud, atau DigitalOcean Cloud Firewall, pastikan Inbound Rule untuk Port `3000` (TCP) sudah diizinkan (allow) dari source `0.0.0.0/0`.*
+2. **Periksa Status Container**:
+   ```bash
+   docker ps
+   docker logs vpn-dashboard
+   ```
+   Pastikan status `Up` dan log menampilkan: `🦊 VPN Web Dashboard active at http://0.0.0.0:3000`.
+
+---
+
+## 8. Panduan Pemeliharaan (Maintenance)
