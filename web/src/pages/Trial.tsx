@@ -171,7 +171,12 @@ export const Trial: React.FC = () => {
                           : "bg-kawaii-subtle dark:bg-kawaii-darkSubtle border-kawaii-ink/30 dark:border-white/30 text-neutral-800 dark:text-neutral-200 hover:border-kawaii-ink dark:hover:border-white hover:bg-kawaii-card dark:hover:bg-kawaii-darkCard"
                       }`}
                     >
-                      <div className="font-heading font-black text-sm">{s.nama_server}</div>
+                      <div className="flex justify-between items-start">
+                        <div className="font-heading font-black text-sm">{s.nama_server}</div>
+                        <span className="text-xs font-mono font-bold text-neutral-600 dark:text-neutral-400">
+                          {s.total_create_akun}/{s.batas_create_akun || "∞"}
+                        </span>
+                      </div>
                       <div className="text-xs font-mono font-black text-neutral-700 dark:text-neutral-300 mt-1">{s.domain}</div>
                     </div>
                   ))}

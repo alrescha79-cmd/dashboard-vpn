@@ -8,9 +8,21 @@ export const serversRoutes = new Elysia({ prefix: "/api/servers" })
   .get("/", () => {
     const db = getDb();
     const rows = db.query(`
-      SELECT id, domain, user_ssh, port, harga, nama_server, quota, iplimit, batas_create_akun, total_create_akun, isp, lokasi, created_at
-      FROM servers
-      ORDER BY id ASC
+      SELECT 
+        s.id, s.domain, s.user_ssh, s.port, s.harga, s.nama_server, s.quota, s.iplimit, s.batas_create_akun, s.isp, s.lokasi, s.created_at,
+        COUNT(CASE 
+          WHEN a.id IS NOT NULL 
+            AND a.status = 'active' 
+            AND (
+              a.expired_at IS NULL OR 
+              (CASE WHEN length(a.expired_at) = 10 THEN date(a.expired_at) >= date('now') ELSE datetime(a.expired_at) > datetime('now') END)
+            ) 
+          THEN 1 
+        END) as total_create_akun
+      FROM servers s
+      LEFT JOIN accounts a ON a.server_id = s.id
+      GROUP BY s.id
+      ORDER BY s.id ASC
     `).all();
     return { servers: rows };
   })

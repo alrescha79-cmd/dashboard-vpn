@@ -26,7 +26,22 @@ export async function buyAccount(
   } | null;
   if (!user) return { success: false, error: "User tidak ditemukan" };
 
-  const server = db.query("SELECT * FROM servers WHERE id = ?").get(input.serverId) as any;
+  const server = db.query(`
+    SELECT s.*, 
+      COUNT(CASE 
+        WHEN a.id IS NOT NULL 
+          AND a.status = 'active' 
+          AND (
+            a.expired_at IS NULL OR 
+            (CASE WHEN length(a.expired_at) = 10 THEN date(a.expired_at) >= date('now') ELSE datetime(a.expired_at) > datetime('now') END)
+          ) 
+        THEN 1 
+      END) as total_create_akun
+    FROM servers s
+    LEFT JOIN accounts a ON a.server_id = s.id
+    WHERE s.id = ?
+    GROUP BY s.id
+  `).get(input.serverId) as any;
   if (!server) return { success: false, error: "Server tidak ditemukan" };
 
   if (server.total_create_akun >= server.batas_create_akun && server.batas_create_akun > 0) {
@@ -266,8 +281,26 @@ export async function createTrialAccount(
     return { success: false, error: `Batas trial harian tercapai (${limitToday}x / hari)` };
   }
 
-  const server = db.query("SELECT * FROM servers WHERE id = ?").get(serverId) as any;
+  const server = db.query(`
+    SELECT s.*, 
+      COUNT(CASE 
+        WHEN a.id IS NOT NULL 
+          AND a.status = 'active' 
+          AND (
+            a.expired_at IS NULL OR 
+            (CASE WHEN length(a.expired_at) = 10 THEN date(a.expired_at) >= date('now') ELSE datetime(a.expired_at) > datetime('now') END)
+          ) 
+        THEN 1 
+      END) as total_create_akun
+    FROM servers s
+    LEFT JOIN accounts a ON a.server_id = s.id
+    WHERE s.id = ?
+    GROUP BY s.id
+  `).get(serverId) as any;
   if (!server) return { success: false, error: "Server tidak ditemukan" };
+  if (server.total_create_akun >= server.batas_create_akun && server.batas_create_akun > 0) {
+    return { success: false, error: "Server sudah penuh (kapasitas maksimal tercapai)" };
+  }
 
   const effectivePassword = protocol.toLowerCase() === "ssh"
     ? (password && password.length >= 4 ? password : `${username}_pass`)

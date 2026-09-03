@@ -48,6 +48,26 @@ const AdminSetupRoute: React.FC = () => {
 };
 
 const AppRoutes: React.FC = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#faede2] dark:bg-[#121214] flex items-center justify-center text-kawaii-ink dark:text-neutral-200 text-sm font-bold">
+        Memuat sesi...
+      </div>
+    );
+  }
+
+  // Jika admin belum menyelesaikan setup kredensial, kunci akses ke halaman /setup
+  if (user && user.role === "admin" && user.needs_setup) {
+    return (
+      <Routes>
+        <Route path="/setup" element={<AdminSetupRoute />} />
+        <Route path="*" element={<Navigate to="/setup" replace />} />
+      </Routes>
+    );
+  }
+
   return (
     <Routes>
       <Route path="/login" element={<Login />} />

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiFetch } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { Shield, AlertCircle, KeyRound } from "lucide-react";
+import { Shield, AlertCircle } from "lucide-react";
 
 export const Login: React.FC = () => {
   const [username, setUsername] = useState("");
@@ -45,14 +45,7 @@ export const Login: React.FC = () => {
           <p className="text-xs font-bold text-neutral-700 dark:text-neutral-300">Akses dashboard VPN dan kelola layanan Anda.</p>
         </div>
 
-        <div className="flex gap-2.5 p-3.5 rounded-2xl bg-kawaii-yellow/30 dark:bg-kawaii-yellow/20 border-3 border-kawaii-ink dark:border-white text-neutral-900 dark:text-neutral-100 font-bold">
-          <KeyRound className="h-4 w-4 shrink-0 mt-0.5 text-kawaii-ink dark:text-white stroke-[2.5]" />
-          <div className="text-xs leading-relaxed">
-            <span className="font-black">Kredensial Default:</span> <span className="font-mono bg-kawaii-card dark:bg-neutral-800 px-2 py-0.5 rounded-lg border-2 border-kawaii-ink dark:border-white">admin / AdminPassword123!</span>
-            <br />
-            Login pertama wajib mengganti username & password administrator.
-          </div>
-        </div>
+        {/* Hint login default telah dihapus untuk keamanan sistem */}
 
         {error && (
           <div className="p-3.5 bg-kawaii-pink/20 border-3 border-kawaii-ink dark:border-white text-neutral-900 dark:text-neutral-100 font-black rounded-2xl text-xs flex items-center gap-2">
