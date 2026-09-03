@@ -1,16 +1,20 @@
-# Stage 1: Build Frontend
+# Stage 1: Build Frontend (Vite + React SPA)
 FROM oven/bun:1 AS frontend-builder
 WORKDIR /app/web
-COPY web/package.json web/bun.lock* ./
+
+COPY web/package.json ./
+COPY web/bun.lock* ./
 RUN bun install --frozen-lockfile || bun install
+
 COPY web/ ./
 RUN bun run build
 
-# Stage 2: Production Runner
+# Stage 2: Production Monorepo Runner (Elysia Backend + Web Dist Serving)
 FROM oven/bun:1-slim AS runner
 WORKDIR /app
 
-COPY package.json bun.lock* ./
+COPY package.json ./
+COPY bun.lock* ./
 RUN bun install --production --frozen-lockfile || bun install --production
 
 COPY src/ ./src

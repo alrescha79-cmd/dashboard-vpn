@@ -1,6 +1,7 @@
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { staticPlugin } from "@elysiajs/static";
+import { existsSync } from "fs";
 import { config } from "./config";
 import { initDatabase } from "./db/database";
 import { runMigrations } from "./db/schema";
@@ -38,10 +39,16 @@ export const app = new Elysia()
   .use(
     staticPlugin({
       assets: "./web/dist",
-      prefix: "/"
+      prefix: ""
     })
   )
-  .get("*", () => Bun.file("./web/dist/index.html"));
+  .get("*", ({ path }) => {
+    const assetPath = `./web/dist${path}`;
+    if (path !== "/" && existsSync(assetPath)) {
+      return Bun.file(assetPath);
+    }
+    return Bun.file("./web/dist/index.html");
+  });
 
 if (import.meta.main) {
   app.listen(config.PORT);
