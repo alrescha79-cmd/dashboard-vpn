@@ -1,6 +1,8 @@
 # Panduan Deployment VPN Dashboard ke VPS
 
-Panduan ini menjelaskan langkah demi langkah cara men-deploy **VPN Web Dashboard** di server VPS (Ubuntu 22.04 / 24.04 atau Debian 11 / 12) menggunakan Docker Image dari GitHub Container Registry (`ghcr.io`), dilengkapi dengan konfigurasi Nginx Reverse Proxy dan SSL HTTPS otomatis dari Let's Encrypt.
+Panduan ini menjelaskan langkah demi langkah cara men-deploy **VPN Web Dashboard** di server VPS (Ubuntu 22.04 / 24.04 atau Debian 11 / 12) menggunakan Docker Image Monorepo dari GitHub Container Registry (`ghcr.io`), dilengkapi dengan konfigurasi Nginx Reverse Proxy dan SSL HTTPS otomatis dari Let's Encrypt.
+
+> **Catatan Arsitektur Monorepo**: Docker image `ghcr.io/alrescha79-cmd/dashboard-vpn:latest` sudah mencakup **Backend API (`src/`)** dan **Frontend Dashboard SPA (`web/dist`)** yang disajikan secara terintegrasi pada port **3000**. Cukup menjalankan 1 container untuk seluruh backend dan UI frontend.
 
 ---
 

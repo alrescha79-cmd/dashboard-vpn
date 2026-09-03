@@ -30,9 +30,12 @@ Dashboard manajemen dan penjualan akun VPN Tunnel Multi-Protokol modern berbasis
   - Desain modern bertema Kawaii Pop dengan border tegas (3-4px), shadow pop, dark mode switch, dan mobile floating dock navigation.
   - Proteksi tamu (guest view) yang membatasi metrik finansial/sistem internal.
 
----
+## Arsitektur Monorepo & Docker Container
 
-## Struktur Direktori
+Proyek ini dibangun dengan struktur **Monorepo**:
+- **Backend (`src/`)**: Server REST API & SSH protocol executor berbasis **Elysia.js / Bun**.
+- **Frontend (`web/`)**: Dashboard antarmuka pengguna berbasis **React + Vite + Tailwind CSS**.
+- **Container Produksi**: Menggunakan Docker multi-stage build yang mem-bundle frontend ke static dist (`/app/web/dist`) dan disajikan langsung oleh Elysia backend pada port **3000**. Satu container docker menjalankan seluruh fungsi backend dan UI dashboard secara mandiri.
 
 ```text
 ├── src/
