@@ -4,6 +4,12 @@ Dashboard manajemen dan penjualan akun VPN Tunnel Multi-Protokol modern berbasis
 
 ---
 
+> ## Dokumentasi Deployment ke VPS
+
+Untuk panduan lengkap deployment ke VPS Ubuntu / Debian menggunakan Docker image resmi dari GitHub Container Registry (`ghcr.io`), konfigurasi Reverse Proxy (Nginx / Caddy), dan SSL HTTPS otomatis, silakan baca:
+
+**[Panduan Lengkap Deployment VPS (docs/DEPLOYMENT_VPS.md)](docs/DEPLOYMENT_VPS.md)**
+
 ## Fitur Utama
 
 - **Multi-Protokol Lengkap**:
@@ -127,14 +133,6 @@ Buka peramban di `http://localhost:3000`.
 - **Password**: `AdminPassword123!`
 
 *Catatan: Pada saat login pertama kali, sistem akan mengarahkan Anda ke halaman `/setup` untuk mengganti username & password administrator baru.*
-
----
-
-## Dokumentasi Deployment ke VPS
-
-Untuk panduan lengkap deployment ke VPS Ubuntu / Debian menggunakan Docker image resmi dari GitHub Container Registry (`ghcr.io`), konfigurasi Reverse Proxy (Nginx / Caddy), dan SSL HTTPS otomatis, silakan baca:
-
-**[Panduan Lengkap Deployment VPS (docs/DEPLOYMENT_VPS.md)](docs/DEPLOYMENT_VPS.md)**
 
 ---
 
